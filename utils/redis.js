@@ -1,15 +1,26 @@
 #!/usr/bin/node
 import { promisify } from 'util';
+
 const redis = require('redis');
 
 class RedisClient {
   constructor() {
-    this.client = redis.createClient();
-    this.client.on('error', (error) => console.error(error));
+    try {
+      this.client = redis.createClient();
+      this.connected = true;
+    } catch (error) {
+      console.error(error);
+      this.connected = false;
+    }
+    // this.connected = false
+    // this.client.on('connect', () => {
+    //   this.connected = true
+    // })
+    // this.client.on('error', (error) => console.error(error));
   }
 
   isAlive() {
-    return this.client.connected;
+    return this.connected;
   }
 
   async get(key) {
@@ -28,4 +39,3 @@ class RedisClient {
 
 const redisClient = new RedisClient();
 export default redisClient;
-module.exports = redisClient;

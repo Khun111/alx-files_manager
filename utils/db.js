@@ -29,8 +29,9 @@ class DBClient {
       return;
     }
 
-    const DB = this.client.db()
+    const DB = this.client.db();
     const count = await DB.collection('users').countDocuments();
+    // eslint-disable-next-line consistent-return
     return count;
   }
 
@@ -39,8 +40,9 @@ class DBClient {
       return;
     }
 
-    const DB = this.client.db()
+    const DB = this.client.db();
     const count = await DB.collection('files').countDocuments();
+    // eslint-disable-next-line consistent-return
     return count;
   }
 }
@@ -48,4 +50,3 @@ class DBClient {
 const dbClient = new DBClient();
 
 export default dbClient;
-module.exports = dbClient;
