@@ -12,7 +12,7 @@ class DBClient {
 
   async connect() {
     try {
-      this.DB = await MongoClient.connect(`mongodb://${host}:${port}/${database}`);
+      this.client = await MongoClient.connect(`mongodb://${host}:${port}/${database}`);
       this.connected = true;
     } catch (err) {
       console.error('Error connecting to MongoDB:', err);
@@ -26,19 +26,21 @@ class DBClient {
 
   async nbUsers() {
     if (!this.connected) {
-      return 0;
+      return;
     }
 
-    const count = await this.DB.collection('users').countDocuments();
+    const DB = this.client.db()
+    const count = await DB.collection('users').countDocuments();
     return count;
   }
 
   async nbFiles() {
     if (!this.connected) {
-      return 0;
+      return;
     }
 
-    const count = await this.DB.collection('files').countDocuments();
+    const DB = this.client.db()
+    const count = await DB.collection('files').countDocuments();
     return count;
   }
 }
