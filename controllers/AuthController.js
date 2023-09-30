@@ -8,7 +8,7 @@ class AuthController {
   static async getConnect(req, res) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Basic ')) return res.status(401).json({ error: 'Unathorized' });
-    const credentials = Buffer.from(authHeader.slice(6), 'base64').toString().split(':');
+    const credentials = Buffer.from(authHeader.split('Basic ')[1], 'base64').toString('utf-8');
     const [email, password] = credentials;
     const userCollection = dbClient.client.db().collection('users');
     const user = userCollection.findOne({ email });
