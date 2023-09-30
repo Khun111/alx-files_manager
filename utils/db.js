@@ -12,7 +12,10 @@ class DBClient {
 
   async connect() {
     try {
-      this.client = await MongoClient.connect(`mongodb://${host}:${port}/${database}`);
+      this.client = await MongoClient.connect(`mongodb://${host}:${port}/${database}`,
+      {
+        useUnifiedTopology: true,
+      });
       this.connected = true;
     } catch (err) {
       console.error('Error connecting to MongoDB:', err);
