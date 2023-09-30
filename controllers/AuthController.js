@@ -1,4 +1,3 @@
-import Buffer from 'node:buffer';
 import hash from 'sha1';
 import uuid from 'uuid';
 import dbClient from '../utils/db';
