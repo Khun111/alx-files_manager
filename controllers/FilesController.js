@@ -1,6 +1,7 @@
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 import { v4 as uuidv4 } from 'uuid';
+import mime from 'mime-types';
 
 const path = require('path');
 const fs = require('fs');
@@ -144,6 +145,113 @@ class FilesController {
             } else {
                 res.status(401).json({ error: 'Unauthorized' });
             }
+
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+    static async putPublish(req, res) {
+        const _id = req.params.id;
+        const { ObjectID } = require('mongodb');
+        const token = req.headers['x-token'];
+        const key = 'auth_'.concat(token);
+        const DB = dbClient.client.db();
+
+        try {
+            const user_id = await redisClient.get(key);
+            if (user_id) {
+                const user = await DB.collection('users').findOne({ _id: new ObjectID(user_id) });
+                const userId = user._id;
+                const fields = [{
+                    $match: {
+                        _id: new ObjectID(_id),
+                        userId: new ObjectID(userId)
+                    }
+                }];
+                const file = await DB.collection('files').aggregate(fields).toArray();
+                if (file.length > 0) {
+                    const result = await DB.collection('files').findOneAndUpdate(
+                        { _id: new ObjectID(_id) },
+                        { $set: { isPublic: true } },
+                        { returnDocument: 'after' }
+                    );
+                    return res.status(201).json(result.value);
+                } else {
+                    return res.status(404).json({ error: 'Not found' });
+                }
+            } else {
+                res.status(401).json({ error: 'Unauthorized' });
+            }
+
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+    static async putUnpublish(req, res) {
+        const _id = req.params.id;
+        const { ObjectID } = require('mongodb');
+        const token = req.headers['x-token'];
+        const key = 'auth_'.concat(token);
+        const DB = dbClient.client.db();
+
+        try {
+            const user_id = await redisClient.get(key);
+            if (user_id) {
+                const user = await DB.collection('users').findOne({ _id: new ObjectID(user_id) });
+                const userId = user._id;
+                const fields = [{
+                    $match: {
+                        _id: new ObjectID(_id),
+                        userId: new ObjectID(userId)
+                    }
+                }];
+                const file = await DB.collection('files').aggregate(fields).toArray();
+                if (file.length > 0) {
+                    const result = await DB.collection('files').findOneAndUpdate(
+                        { _id: new ObjectID(_id) },
+                        { $set: { isPublic: false } },
+                        { returnDocument: 'after' }
+                    );
+                    return res.status(201).json(result.value);
+                } else {
+                    return res.status(404).json({ error: 'Not found' });
+                }
+            } else {
+                res.status(401).json({ error: 'Unauthorized' });
+            }
+
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+    static async getFile(req, res) {
+        const _id = req.params.id;
+        const { ObjectID } = require('mongodb');
+        const token = req.headers['x-token'];
+        const key = 'auth_'.concat(token);
+        const DB = dbClient.client.db();
+
+        try {
+            const user_id = await redisClient.get(key);
+            const file = await DB.collection('files').findOne({ _id: new ObjectID(_id) });
+            if (!file) {
+                return res.status(404).json({ error: 'Not found' });
+            }
+            if (file.isPublic === true || !user_id || user_id !== file.userId.toString()) {
+                return res.status(404).json({ error: 'Not found' });
+            }
+            if (file.type === 'folder') {
+                return res.status(400).json({ error: "A folder doesn't have content" });
+            }
+            if (file.localPath && !fs.existsSync(file.localPath)) {
+                return res.status(404).json({ error: 'Not found' });
+            }
+            const mimeType = mime.lookup(file.name);
+            res.setHeader('Content-Type', mimeType);
+            res.sendFile(file.localPath);
 
         } catch (err) {
             console.log(err);
