@@ -229,10 +229,12 @@ class FilesController {
     }
     static async getFile(req, res) {
         const _id = req.params.id;
+        const size = req.query.size;
         const { ObjectID } = require('mongodb');
         const token = req.headers['x-token'];
         const key = 'auth_'.concat(token);
         const DB = dbClient.client.db();
+        const sizes = [500, 250, 100];
 
         try {
             const user_id = await redisClient.get(key);
@@ -246,13 +248,22 @@ class FilesController {
             if (file.type === 'folder') {
                 return res.status(400).json({ error: "A folder doesn't have content" });
             }
-            if (file.localPath && !fs.existsSync(file.localPath)) {
+            if (size) {
+                if (sizes.includes(size)) {
+                    const mimeType = mime.lookup(file.name);
+                    const thumbnailPath = file.localPath.replace(/(\.[\w\d_-]+)$/i, `_${size}$1`);
+                    res.setHeader('Content-Type', mimeType);
+                    return res.sendFile(thumbnailPath);
+                }
                 return res.status(404).json({ error: 'Not found' });
+            } else {
+                if (file.localPath && !fs.existsSync(file.localPath)) {
+                    return res.status(404).json({ error: 'Not found' });
+                }
+                const mimeType = mime.lookup(file.name);
+                res.setHeader('Content-Type', mimeType);
+                return res.sendFile(file.localPath);
             }
-            const mimeType = mime.lookup(file.name);
-            res.setHeader('Content-Type', mimeType);
-            res.sendFile(file.localPath);
-
         } catch (err) {
             console.log(err);
             res.status(500).json({ error: 'Internal Server Error' });
