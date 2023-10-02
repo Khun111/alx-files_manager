@@ -1,22 +1,18 @@
 #!/usr/bin/node
+import { createClient } from 'redis';
 import { promisify } from 'util';
-
-const redis = require('redis');
 
 class RedisClient {
   constructor() {
-    try {
-      this.client = redis.createClient();
-      this.connected = true;
-    } catch (error) {
-      console.error(error);
+    this.client = createClient();
+    this.connected = true;
+    this.client.on('error', (err) => {
+      console.log(err);
       this.connected = false;
-    }
-    // this.connected = false
-    // this.client.on('connect', () => {
-    //   this.connected = true
-    // })
-    // this.client.on('error', (error) => console.error(error));
+    });
+    this.client.on('connect', () => {
+      this.connected = true;
+    });
   }
 
   isAlive() {
