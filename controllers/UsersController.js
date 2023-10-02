@@ -8,18 +8,18 @@ class UsersController {
     const { email, password } = req.body;
     if (redisClient.isAlive() && dbClient.isAlive()) {
       if (!email) {
-        res.status(400).send({ error: 'Missing email' });
+        return res.status(400).send({ error: 'Missing email' });
       } else if (!password) {
-        res.status(400).send({ error: 'Missing email' });
+        return res.status(400).send({ error: 'Missing email' });
       } else {
         const DB = dbClient.client.db();
         if (await DB.collection('users').findOne({ email })) {
-          res.status(400).json({ error: 'Already exist' });
+          return res.status(400).json({ error: 'Already exist' });
         } else {
           const user = this.hashPassword(email, password);
           const result = await DB.collection('users').insertOne(user);
           const { ops } = result;
-          res.status(201).json(
+          return res.status(201).json(
             {
               id: ops[0]._id,
               email: ops[0].email,
