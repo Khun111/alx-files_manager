@@ -1,23 +1,34 @@
+import sha1 from 'sha1';
+import Queue from 'bull/lib/queue';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
-const crypto = require('crypto');
-
+const userQueue = new Queue('email sending');
 class UsersController {
   static async postNew(req, res) {
-    const { email } = req.body;
-    const { password } = req.body;
-    const usersCollection = dbClient.client.db().collection('users');
+    const email = req.body ? req.body.email : null;
+    const password = req.body ? req.body.password : null;
 
-    if (!email) return res.status(400).json({ error: 'Missing email' });
-    if (!password) return res.status(400).json({ error: 'Missing password' });
-    const userExist = await usersCollection.findOne({ email });
+    if (!email) {
+      res.status(400).json({ error: 'Missing email' });
+      return;
+    }
+    if (!password) {
+      res.status(400).json({ error: 'Missing password' });
+      return;
+    }
+    const user = await (await dbClient.usersCollection()).findOne({ email });
 
-    if (userExist) return res.status(400).json({ error: 'Already exist' });
-    const hashedPassword = crypto.createHash('sha1').update(password).digest('hex');
-    const user = { email, password: hashedPassword };
-    const entry = await usersCollection.insertOne(user);
-    return res.status(201).json({ id: entry.insertedId, email });
+    if (user) {
+      res.status(400).json({ error: 'Already exist' });
+      return;
+    }
+    const insertionInfo = await (await dbClient.usersCollection())
+      .insertOne({ email, password: sha1(password) });
+    const userId = insertionInfo.insertedId.toString();
+
+    userQueue.add({ userId });
+    res.status(201).json({ email, id: userId });
   }
 
   static async getMe(req, res) {
