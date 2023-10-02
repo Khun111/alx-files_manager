@@ -6,8 +6,6 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(express.json({ limit: '50mb' }));
-app.get('/', (req, res) => {
-  res.send({ message: 'hi' });
-});
-app.use('/', routes());
+
+app.use('/', routes);
 app.listen(port, () => { console.log(`Server is running on port ${port}`); });
