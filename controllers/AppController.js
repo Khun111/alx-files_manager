@@ -3,9 +3,7 @@ import dbClient from '../utils/db';
 
 class AppController {
   static getStatus(_, res) {
-    if (redisClient.isAlive() && dbClient.isAlive()) {
-      res.status(200).json({ redis: true, db: true });
-    }
+    return res.status(200).json({ redis: redisClient.isAlive(), db: dbClient.isAlive() });
   }
 
   static async getStats(_, res) {
