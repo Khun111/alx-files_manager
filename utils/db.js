@@ -16,15 +16,14 @@ class DBClient {
         {
           useUnifiedTopology: true,
         });
-      this.connected = true;
     } catch (err) {
       console.error('Error connecting to MongoDB:', err);
-      this.connected = false;
+      console.error(err);
     }
   }
 
   isAlive() {
-    return this.connected;
+    return this.client.connected;
   }
 
   async nbUsers() {
