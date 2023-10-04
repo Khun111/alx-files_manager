@@ -5,7 +5,6 @@ import { promisify } from 'util';
 class RedisClient {
   constructor() {
     this.client = createClient();
-    this.connected = true;
     this.client.on('error', (err) => {
       console.log(err);
       this.connected = false;
@@ -16,7 +15,7 @@ class RedisClient {
   }
 
   isAlive() {
-    return this.connected;
+    return this.client.connected;
   }
 
   async get(key) {
