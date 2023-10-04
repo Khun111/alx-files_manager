@@ -28,24 +28,14 @@ class DBClient {
   }
 
   async nbUsers() {
-    if (!this.connected) {
-      return;
-    }
-
     const DB = this.client.db();
     const count = await DB.collection('users').countDocuments();
-    // eslint-disable-next-line consistent-return
     return count;
   }
 
   async nbFiles() {
-    if (!this.connected) {
-      return;
-    }
-
     const DB = this.client.db();
     const count = await DB.collection('files').countDocuments();
-    // eslint-disable-next-line consistent-return
     return count;
   }
 }
