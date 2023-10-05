@@ -25,7 +25,7 @@ class UsersController {
       return;
     }
 
-    const insertionInfo = await (await  DB.collection('users'))
+    const insertionInfo = await (await DB.collection('users'))
       .insertOne({ email, password: sha1(password) });
     const userId = insertionInfo.insertedId.toString();
 
